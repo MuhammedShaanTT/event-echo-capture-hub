@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -30,6 +30,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { cn } from '@/lib/utils';
 import { useEvents } from '@/context/EventContext';
 import { EventFormData } from '@/types/event';
@@ -73,6 +82,8 @@ const formSchema = z.object({
 const EventForm = () => {
   const { addEvent } = useEvents();
   const navigate = useNavigate();
+  const [customType, setCustomType] = useState('');
+  const [showCustomDialog, setShowCustomDialog] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -84,6 +95,22 @@ const EventForm = () => {
       venue: '',
     },
   });
+
+  const handleTypeChange = (value: string) => {
+    if (value === 'Other') {
+      setShowCustomDialog(true);
+    } else {
+      form.setValue('type', value);
+    }
+  };
+
+  const handleCustomTypeSubmit = () => {
+    if (customType.trim().length < 2) {
+      return; // Prevent empty custom types
+    }
+    form.setValue('type', customType);
+    setShowCustomDialog(false);
+  };
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     // Ensure all fields are defined as required by the EventFormData type
@@ -129,8 +156,8 @@ const EventForm = () => {
                 <FormItem>
                   <FormLabel>Event Type</FormLabel>
                   <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    onValueChange={handleTypeChange}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -149,6 +176,39 @@ const EventForm = () => {
                 </FormItem>
               )}
             />
+
+            {/* Dialog for custom event type */}
+            <Dialog open={showCustomDialog} onOpenChange={setShowCustomDialog}>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Enter Custom Event Type</DialogTitle>
+                  <DialogDescription>
+                    Please enter your custom event type below.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <Input
+                    placeholder="Enter custom event type"
+                    value={customType}
+                    onChange={(e) => setCustomType(e.target.value)}
+                    className="col-span-3"
+                  />
+                </div>
+                <DialogFooter>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      setShowCustomDialog(false);
+                      form.setValue('type', '');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="button" onClick={handleCustomTypeSubmit}>Save</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
 
             <FormField
               control={form.control}
