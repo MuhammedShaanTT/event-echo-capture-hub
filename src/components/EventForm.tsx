@@ -86,8 +86,15 @@ const EventForm = () => {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    // Ensure all fields are defined as required by the EventFormData type
     const eventData: EventFormData = {
-      ...values,
+      name: values.name,
+      type: values.type,
+      date: values.date,
+      organizingClub: values.organizingClub,
+      chiefCoordinator: values.chiefCoordinator,
+      chiefCoordinatorEmail: values.chiefCoordinatorEmail,
+      venue: values.venue,
     };
     addEvent(eventData);
     navigate('/');
